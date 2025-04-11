@@ -34,31 +34,12 @@ export function WebContainerManager({ files, setPreviewUrl, xtermRef }) {
         const packageJsonFile = files.find(file => file.name === "package.json");
 
         if (!packageJsonFile) {
-          writeToTerminal("⚠️ No package.json found! Creating a default one...");
-          files.push({
-            name: "package.json",
-            type: "file",
-            content: JSON.stringify(
-              {
-                name: "webcontainer-project",
-                version: "1.0.0",
-                scripts: {
-                  dev: "vite",
-                  build: "vite build",
-                  start: "vite preview"
-                },
-                dependencies: {},
-                devDependencies: {
-                  vite: "^4.0.0",
-                  react: "^18.0.0",
-                  "react-dom": "^18.0.0"
-                }
-              },
-              null,
-              2
-            ),
-          });
+          writeToTerminal("⚠️ No package.json found! Creating one...");
+          files.push(files[0].children[0]);
         }
+
+        console.log("🗂 Final file structure:", files[0].children[0]);
+          
 
         // 🛠️ Convert files array to WebContainer structure
         const createMountStructure = (files) => {
