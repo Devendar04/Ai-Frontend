@@ -57,7 +57,7 @@ export function CodeSection({
             </>
           ) : (
             
-            <PreviewPane previewUrl={previewUrl} />
+            <PreviewPane previewUrl={previewUrl} />            
           )}
         </div>
 

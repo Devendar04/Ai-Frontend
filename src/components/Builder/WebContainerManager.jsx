@@ -12,39 +12,11 @@ export function WebContainerManager({ files, setPreviewUrl, xtermRef }) {
   useEffect(() => {
     if (!webcontainer) return;
 
-    // Set up the server-ready event listener immediately
-    webcontainer.on("server-ready", async (port, url) => {
-      console.log("Server Ready Event Triggered", { port, url });
-
-      if (!url) {
-        writeToTerminal("❌ URL is empty! Trying manual retrieval...");
-        const resolvedUrl = await webcontainer.getURL(port);
-        writeToTerminal("🔍 Manually Retrieved URL: " + resolvedUrl);
-        setPreviewUrl(resolvedUrl || `http://localhost:5173`);
-      } else {
-        setPreviewUrl(url);
-      }
-    });
-
-    async function setupContainer() {
+    const setupContainer = async () => {
       try {
         writeToTerminal("🔄 Setting up WebContainer...");
-
-        // Check if package.json exists
-        const packageJsonFile = files.find(file => file.name === "package.json");
-
-        if (!packageJsonFile) {
-          writeToTerminal("⚠️ No package.json found! Creating one...");
-          files.push(files[0].children[0]);
-        }
-
-        console.log("🗂 Final file structure:", files[0].children[0]);
-          
-
-        // 🛠️ Convert files array to WebContainer structure
         const createMountStructure = (files) => {
-          if (!Array.isArray(files)) return {}; // Ensure input is an array
-
+          if (!Array.isArray(files)) return {};
           return Object.fromEntries(
             files.map((file) => [
               file.name,
@@ -55,70 +27,56 @@ export function WebContainerManager({ files, setPreviewUrl, xtermRef }) {
           );
         };
 
-        // Log file structure before mounting
-        const fileStructure = createMountStructure(files);
-        console.log("🗂 Mounting file structure:", fileStructure);
+        const root = files[0]; // Assuming this is the root folder
+        const mountStructure = createMountStructure(root.children || []);
+        console.log("🗂 Mounting file structure:", mountStructure);
 
-        await webcontainer.mount(fileStructure);
+        await webcontainer.mount(mountStructure);
         writeToTerminal("✅ Files mounted successfully!");
 
-        // 📦 Install dependencies
+  
+        webcontainer.on("server-ready", (port, url) => {
+          writeToTerminal(`🌐 Server Ready at ${url} (Port: ${port})`);
+          if (!url) {
+            writeToTerminal("❌ No URL provided!");
+            return;
+          }
+          setPreviewUrl(url);
+        });
+
+        // Install dependencies
         writeToTerminal("📦 Installing dependencies...");
         const installProcess = await webcontainer.spawn("npm", ["install"]);
-
         installProcess.output.pipeTo(
-          new WritableStream({
-            write: (chunk) => {
-              writeToTerminal(chunk);
-            },
-          })
+          new WritableStream({ write: writeToTerminal })
         );
 
         const installExitCode = await installProcess.exit;
         if (installExitCode !== 0) {
           writeToTerminal("🚨 npm install failed!");
           throw new Error("Dependency installation failed!");
-        }
 
+
+        }
         writeToTerminal("✅ Dependencies installed!");
 
-        // 🚀 Start the dev server
+        // Start Vite dev server
         writeToTerminal("🚀 Starting Vite Dev Server...");
         const startProcess = await webcontainer.spawn("npm", ["run", "dev"]);
-
         startProcess.output.pipeTo(
-          new WritableStream({
-            write: (chunk) => {
-              writeToTerminal(chunk);
-
-              // Improved URL detection
-              const urlMatch = chunk.match(/(https?:\/\/[^\s]+)/);
-              if (urlMatch && urlMatch[1]) {
-                const detectedUrl = urlMatch[1].trim();
-                writeToTerminal(`🔎 Detected URL in output: ${detectedUrl}`);
-                setPreviewUrl(detectedUrl);
-              }
-            },
-          })
+          new WritableStream({ write: writeToTerminal })
         );
 
-        writeToTerminal("✅ Vite server process started");
+        const startExitCode = await startProcess.exit;
+        if (startExitCode !== 0) {
+          throw new Error("❌ Vite failed to start!");
+        }
 
-        // Fallback after 5 seconds if no URL is detected
-        setTimeout(() => {
-          setPreviewUrl((current) => {
-            if (!current) {
-              writeToTerminal("⚠️ No URL detected after timeout, using fallback");
-              return "http://localhost:5173";
-            }
-            return current;
-          });
-        }, 5000);
       } catch (error) {
-        writeToTerminal("❌ WebContainer setup failed: " + error);
-        console.error("WebContainer setup error:", error);
+        writeToTerminal(`❌ WebContainer setup failed: ${error.message}`);
+        console.error(error);
       }
-    }
+    };
 
     setupContainer();
 
