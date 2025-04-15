@@ -10,8 +10,7 @@ export function WebContainerManager({ files, setPreviewUrl, xtermRef }) {
   };
 
   useEffect(() => {
-    if (!webcontainer) return;
-
+    if (!webcontainer) return; 
     const setupContainer = async () => {
       try {
         writeToTerminal("🔄 Setting up WebContainer...");
@@ -34,7 +33,7 @@ export function WebContainerManager({ files, setPreviewUrl, xtermRef }) {
         await webcontainer.mount(mountStructure);
         writeToTerminal("✅ Files mounted successfully!");
 
-  
+       
         webcontainer.on("server-ready", (port, url) => {
           writeToTerminal(`🌐 Server Ready at ${url} (Port: ${port})`);
           if (!url) {
@@ -60,13 +59,12 @@ export function WebContainerManager({ files, setPreviewUrl, xtermRef }) {
         }
         writeToTerminal("✅ Dependencies installed!");
 
-        // Start Vite dev server
+        // Start Vite dev server 
         writeToTerminal("🚀 Starting Vite Dev Server...");
         const startProcess = await webcontainer.spawn("npm", ["run", "dev"]);
         startProcess.output.pipeTo(
           new WritableStream({ write: writeToTerminal })
         );
-
         const startExitCode = await startProcess.exit;
         if (startExitCode !== 0) {
           throw new Error("❌ Vite failed to start!");

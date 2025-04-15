@@ -65,13 +65,6 @@ export function PromptInput() {
         </button>
       </form>
 
-      {/* Display result after generation */}
-      {/* {result && (
-        <div className="mt-8 bg-gray-900 text-white p-4 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-bold mb-2">Generated Response:</h3>
-          <p className="whitespace-pre-wrap">{result}</p>
-        </div>
-      )} */}
     </div>
   );
 }

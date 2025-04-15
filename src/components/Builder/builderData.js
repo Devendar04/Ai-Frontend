@@ -3,6 +3,7 @@ import {parseXml} from '../../step';
 
 
 export let resFile = null;
+export let resData = null;
 export async function fetchBuilderData(prompt) {
 
   
@@ -11,9 +12,10 @@ export async function fetchBuilderData(prompt) {
       `http://localhost:4000/ai/get-results?prompt=${prompt}`,
       { prompt }
     );
+    resData = response.data;
     const Data = parseXml(response.data);
     console.log(Data);
-   resFile=Data;
+    resFile=Data;
     if (response.status === 200) {
       return response.data;
     } else {
@@ -23,9 +25,9 @@ export async function fetchBuilderData(prompt) {
     console.error('Error fetching builder data:', error);
     throw error;
   }
-  // export  resFiles = resFiles;
+ 
 }
-// export const resFile = resFiles;
+
 
 
 export const initialSteps = [

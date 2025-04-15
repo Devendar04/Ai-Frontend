@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "vite --host 0.0.0.0",
-  "build": "vite build",
-  "preview": "vite preview --host 0.0.0.0"
-},
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
     "@webcontainer/api": "^1.5.3-internal.1",

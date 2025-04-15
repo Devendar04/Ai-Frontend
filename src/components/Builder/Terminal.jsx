@@ -10,7 +10,6 @@ export function Terminal({ xtermRef }) {
   useEffect(() => {
     if (!terminalRef.current) return;
 
-    // Initialize xterm.js
     const term = new XTerm({
       cursorBlink: true,
       fontSize: 14,
@@ -27,33 +26,28 @@ export function Terminal({ xtermRef }) {
         purple: '#ad8ee6',
         red: '#f7768e',
         white: '#787c99',
-        yellow: '#e0af68'
-      }
+        yellow: '#e0af68',
+      },
     });
 
-    // Add the fit addon
     const fitAddon = new FitAddon();
-    term.loadAddon(fitAddon);
-
-    // Add the web links addon
     const webLinksAddon = new WebLinksAddon();
+    term.loadAddon(fitAddon);
     term.loadAddon(webLinksAddon);
 
-    // Open the terminal
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    // Write initial text
-    term.writeln('\x1b[1;34m$ Welcome to SOEN Terminal\x1b[0m');
+    term.writeln('\x1b[1;34mWelcome to the Terminal\x1b[0m');
     term.write('\x1b[1;32m$ \x1b[0m');
 
-    // Handle input
     term.onKey(({ key, domEvent }) => {
       const char = domEvent.key;
+
       if (char === 'Enter') {
         term.write('\r\n\x1b[1;32m$ \x1b[0m');
-      } else if (domEvent.keyCode === 8) {
-        // Backspace
+      } else if (domEvent.key === 'Backspace') {
+        // Limit deletion past prompt
         if (term._core.buffer.x > 2) {
           term.write('\b \b');
         }
@@ -62,14 +56,12 @@ export function Terminal({ xtermRef }) {
       }
     });
 
-    // Handle window resize
-    const handleResize = () => {
-      fitAddon.fit();
-    };
+    const handleResize = () => fitAddon.fit();
     window.addEventListener('resize', handleResize);
 
-    // Expose term for WebContainer logs
-    xtermRef.current = term;
+    if (xtermRef) {
+      xtermRef.current = term;
+    }
 
     return () => {
       term.dispose();
@@ -78,8 +70,8 @@ export function Terminal({ xtermRef }) {
   }, [xtermRef]);
 
   return (
-    <div className="h-full bg-gray-900  mb-14">
-      <div ref={terminalRef} className="h-full " />
+    <div className="h-full bg-gray-900 mb-14">
+      <div ref={terminalRef} className="h-full" />
     </div>
   );
 }

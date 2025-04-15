@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Send, Loader2 } from "lucide-react";
-import axios from "axios";
+import { fetchUpdateData } from "./updateCode";
 
 export function BuilderPromptInput({ onSubmit }) {
   const [prompt, setPrompt] = useState("");
@@ -13,14 +13,14 @@ export function BuilderPromptInput({ onSubmit }) {
     setLoading(true);
 
     try {
-      const response = await axios.post("/api/messages", { message: prompt.trim() });
+      const result = await fetchUpdateData(prompt); // Only this call is needed
+      setPrompt("");
 
-      if (response.status === 200) {
-        onSubmit(response.data.reply || prompt.trim()); // Add AI reply if exists
-        setPrompt("");
-      }
+
+      if (onSubmit) onSubmit( prompt.trim());
+
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error fetching update:", error);
       alert("Failed to send message. Try again.");
     } finally {
       setLoading(false);

@@ -6,6 +6,7 @@ import {
   Circle,
 } from "lucide-react";
 import { BuilderPromptInput } from "./BuilderPromptInput";
+import { updateFiles } from "./updateCode";
 
 const initialChatHistory = [
   {
@@ -28,12 +29,17 @@ const initialChatHistory = [
   {
     id: 3,
     type: "shell",
-    commands: ["npm install react@latest", "npm install tailwindcss", "npm run dev"],
+    commands: [
+      "npm install react@latest",
+      "npm install tailwindcss",
+      "npm run dev",
+    ],
   },
   {
     id: 4,
     type: "message",
-    content: "I've set up the project with React and Tailwind CSS. The development server is now running.",
+    content:
+      "I've set up the project with React and Tailwind CSS. The development server is now running.",
     timestamp: "1 min ago",
     isUser: false,
   },
@@ -43,10 +49,23 @@ function ChatMessage({ message }) {
   switch (message.type) {
     case "message":
       return (
-        <div className={`flex flex-col ${message.isUser ? "items-end" : "items-start"}`}>
-          <div className={`max-w-[85%] rounded-lg p-3 ${message.isUser ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-200"}`}>
-            <p className="text-sm">{message.content}</p>
-            <span className="text-xs mt-2 block opacity-70">{message.timestamp}</span>
+        <div
+          className={`flex flex-col ${
+            message.isUser ? "items-end" : "items-start"
+          }`}
+        >
+          <div
+            className={`max-w-[85%] rounded-lg p-3 ${
+              message.isUser
+                ? "bg-blue-600 text-white"
+                : "bg-gray-800 text-gray-200"
+            }`}
+          >
+            <p className="text-sm">{message.content}</p>{" "}
+            {/* Make sure content is a string */}
+            <span className="text-xs mt-2 block opacity-70">
+              {message.timestamp}
+            </span>
           </div>
         </div>
       );
@@ -56,12 +75,20 @@ function ChatMessage({ message }) {
         <div className="bg-gray-800 rounded-lg p-4">
           <h4 className="text-white font-medium mb-3">{message.title}</h4>
           <div className="space-y-2">
-            {message.steps.map((step, index) => (
-              <div key={index} className="flex items-center space-x-2 text-sm">
-                {step.completed ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Circle className="h-4 w-4 text-gray-500" />}
-                <span className="text-gray-300">{step.name}</span>
-              </div>
-            ))}
+            {message.steps &&
+              message.steps.map((step, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-2 text-sm"
+                >
+                  {step.completed ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Circle className="h-4 w-4 text-gray-500" />
+                  )}
+                  <span className="text-gray-300">{step.name}</span>
+                </div>
+              ))}
           </div>
         </div>
       );
@@ -71,11 +98,15 @@ function ChatMessage({ message }) {
         <div className="bg-gray-800 rounded-lg p-4">
           <div className="flex items-center space-x-2 mb-2">
             <TerminalIcon className="h-4 w-4 text-blue-500" />
-            <span className="text-white text-sm font-medium">Shell Commands</span>
+            <span className="text-white text-sm font-medium">
+              Shell Commands
+            </span>
           </div>
           <div className="font-mono text-sm space-y-1">
             {message.commands.map((cmd, index) => (
-              <div key={index} className="text-gray-300">$ {cmd}</div>
+              <div key={index} className="text-gray-300">
+                $ {cmd}
+              </div>
             ))}
           </div>
         </div>
@@ -86,13 +117,14 @@ function ChatMessage({ message }) {
   }
 }
 
-export function StepsList() {
+export function StepsList({ onFilesUpdate }) {
   const [chatHistory, setChatHistory] = useState(initialChatHistory);
   const chatContainerRef = useRef(null);
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [chatHistory.length]); // 👈 Fix: Depend on array length, not entire state
 
@@ -106,20 +138,6 @@ export function StepsList() {
     };
 
     setChatHistory((prev) => [...prev, userMessage]);
-
-    // Simulate AI response
-    setTimeout(() => {
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          type: "message",
-          content: "I understand your request. Let me help you with that.",
-          timestamp: "Just now",
-          isUser: false,
-        },
-      ]);
-    }, 1000);
   };
 
   return (
@@ -129,14 +147,22 @@ export function StepsList() {
         <h3 className="text-lg font-semibold">Chat History</h3>
       </div>
 
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+      >
         {chatHistory.map((chat) => (
           <ChatMessage key={chat.id} message={chat} />
         ))}
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-800">
-        <BuilderPromptInput onSubmit={addMessage} />
+        <BuilderPromptInput
+          onSubmit={(message) => {
+            addMessage(message);
+            onFilesUpdate(updateFiles); // ← trigger the files update
+          }}
+        />
       </div>
     </div>
   );
